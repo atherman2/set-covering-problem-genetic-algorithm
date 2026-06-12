@@ -4,7 +4,7 @@
 class SCPColumn {
     public:
         float cost;
-        std::vector<int> rows_covered;
+        std::vector<int> covered_rows;
         SCPColumn(float cost, std::vector<int> rows);
 };
 
@@ -26,4 +26,14 @@ class SCPInstance {
 
         void print_columns() const;
         void print_rows() const;
+};
+
+class SCPSolution {
+    public:
+        float cost;
+        std::vector<int> columns_used;
+        std::vector<int> uncovered_rows;
+        SCPSolution(float cost, std::vector<int> columns_used, std::vector<int> unconvered_rows);
+        bool is_valid();
+        void remove_column(int column);
 };

@@ -3,14 +3,11 @@
 #include <sstream>
 #include <iostream>
 
-SCPColumn::SCPColumn(float cost, std::vector<int> rows) {
-    this->cost = cost;
-    rows_covered = rows;
-}
+SCPColumn::SCPColumn(float cost, std::vector<int> rows)
+	: cost(cost), covered_rows(rows) { }
 
-SCPRow::SCPRow(std::vector<int> columns) {
-    covered_by = columns;
-}
+SCPRow::SCPRow(std::vector<int> columns)
+	: covered_by(columns) { }
 
 bool SCPInstance::read_file(const std::string& file_path) {
 
@@ -70,7 +67,7 @@ void SCPInstance::print_columns() const {
                   << " | Cost: " << columns[column_idx].cost
                   << " | Covers rows: ";
 
-        for (int row : columns[column_idx].rows_covered)
+        for (int row : columns[column_idx].covered_rows)
             std::cout << row + 1 << " ";
 
         std::cout << "\n";
@@ -89,4 +86,15 @@ void SCPInstance::print_rows() const {
 
         std::cout << "\n";
     }
+}
+
+SCPSolution::SCPSolution(float cost, std::vector<int> columns_used, std::vector<int> unconvered_rows)
+	: cost(cost), columns_used(columns_used), uncovered_rows(unconvered_rows) { }
+
+bool SCPSolution::is_valid() {
+	return uncovered_rows.size() == 0;
+}
+
+void SCPSolution::remove_column(int column) {
+	// TODO
 }
