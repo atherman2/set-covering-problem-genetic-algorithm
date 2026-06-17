@@ -21,6 +21,7 @@ class SCPInstance {
 
         std::vector<SCPColumn> columns;
         std::vector<SCPRow> rows;
+        std::vector<int> columns_range;
 
         bool read_file(const std::string& file_path);
 
@@ -37,3 +38,5 @@ class SCPSolution {
         bool is_valid();
         void remove_column(int column);
 };
+
+SCPSolution empty_solution(SCPInstance& instance);

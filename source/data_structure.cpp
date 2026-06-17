@@ -34,6 +34,8 @@ bool SCPInstance::read_file(const std::string& file_path) {
     std::getline(file, line_text); // discards the '\n' left after "DATA"
 
     for (int column_idx = 0; column_idx < num_columns; column_idx++) {
+    	columns_range.push_back(column_idx);
+
         std::getline(file, line_text); // reads one full line
         std::stringstream line_stream(line_text);
 
@@ -97,4 +99,8 @@ bool SCPSolution::is_valid() {
 
 void SCPSolution::remove_column(int column) {
 	// TODO
+}
+
+SCPSolution empty_solution(SCPInstance &instance) {
+	return SCPSolution(0.0f, {}, instance.columns_range);
 }
