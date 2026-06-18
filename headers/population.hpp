@@ -8,6 +8,8 @@ SCPSolution random_solution(SCPInstance& instance);
 
 void semi_greed_add_column(std::vector<int> unused_columns, SCPSolution& solution, SCPInstance& instance);
 
-using columnEntry = std::pair<float, int>;
+using columnEntry = std::pair<float, int>; // <score, column>
 
-std::vector<columnEntry> build_columns_rcl();
+std::vector<columnEntry> build_columns_rcl(std::vector<int> unused_columns, SCPSolution &solution, SCPInstance &instance);
+
+columnEntry buildEntry(int column, SCPSolution &solution, SCPInstance &instance);
