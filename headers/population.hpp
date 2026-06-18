@@ -6,4 +6,8 @@ SCPSolution initial_population(std::vector<SCPSolution>& population, SCPInstance
 
 SCPSolution random_solution(SCPInstance& instance);
 
-std::pair<int, SCPColumn> worst_pair(std::vector<std::pair<int, SCPColumn>>);
+void semi_greed_add_column(std::vector<int> unused_columns, SCPSolution& solution, SCPInstance& instance);
+
+using columnEntry = std::pair<float, int>;
+
+std::vector<columnEntry> build_columns_rcl();

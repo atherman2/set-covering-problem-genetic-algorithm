@@ -57,7 +57,9 @@ bool SCPInstance::read_file(const std::string& file_path) {
 
         columns.emplace_back(cost, covered_rows);
     }
-
+    rows_range.resize(num_rows);
+    for (int row_idx = 0; row_idx < num_rows; row_idx++)
+    	rows_range.at(row_idx) = row_idx;
     return true;
 }
 
@@ -102,5 +104,5 @@ void SCPSolution::remove_column(int column) {
 }
 
 SCPSolution empty_solution(SCPInstance &instance) {
-	return SCPSolution(0.0f, {}, instance.columns_range);
+	return SCPSolution(0.0f, {}, instance.rows_range);
 }

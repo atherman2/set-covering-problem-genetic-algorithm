@@ -22,6 +22,7 @@ class SCPInstance {
         std::vector<SCPColumn> columns;
         std::vector<SCPRow> rows;
         std::vector<int> columns_range;
+        std::vector<int> rows_range;
 
         bool read_file(const std::string& file_path);
 
