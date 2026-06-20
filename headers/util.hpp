@@ -77,8 +77,8 @@ namespace util {
     }
 
     template <typename T>
-    T& search(std::vector<T>& vec, const T& element) {
-    	return std::find(vec.begin, vec.end, element);
+    typename std::vector<T>::iterator search(std::vector<T>& vec, const T& element) {
+        return std::find(vec.begin(), vec.end(), element);
     }
 }
 

@@ -7,7 +7,7 @@ SCPSolution fill_initial_population(std::vector<SCPSolution> &population, SCPIns
 	auto sol = random_solution(instance);
 	population.push_back(sol);
 	auto best_sol = sol;
-	for (int i = 1, i <= POPULATION_SIZE; i++) {
+	for (int i = 1; i <= POPULATION_SIZE; i++) {
 		auto sol = random_solution(instance);
 		population.push_back(sol);
 		if (sol.cost < best_sol.cost)
@@ -20,15 +20,15 @@ SCPSolution random_solution(SCPInstance& instance) {
 	SCPSolution sol = empty_solution(instance);
 	auto unused_columns = instance.columns_range;
 	while (sol.uncovered_rows.size() > 0) {
-		semi_greedy_add_column(unused_columns, solution, instance);
+		semi_greedy_add_column(unused_columns, sol, instance);
 	}
 	return sol;
 }
 
 void semi_greedy_add_column(std::vector<int> unused_columns, SCPSolution &solution, SCPInstance &instance) {
 	auto rcl = build_columns_rcl(unused_columns, solution, instance);
-	auto new_column_rcl_idx = RandomGenerator::inRange(0, COL_RCL_SIZE - 1);
-	solution.add_column(rcl.at(new_column_rcl_idx), instance);
+	auto new_column_rcl_idx = RandomGenerator::inRange(0, (int)rcl.size() - 1);
+	solution.add_column(rcl.at(new_column_rcl_idx).second, instance);
 }
 
 std::vector<columnEntry> build_columns_rcl(std::vector<int> unused_columns, SCPSolution &solution, SCPInstance &instance) {

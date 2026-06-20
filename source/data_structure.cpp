@@ -110,9 +110,9 @@ void SCPSolution::add_column(int column_idx, SCPInstance& instance) {
 	cost += column.cost;
 	for (int i = 0; i < column.covered_rows.size(); i++) {
 		auto row_idx = column.covered_rows.at(i);
-		auto& row_ref = util::search(uncovered_rows, row_idx);
+		auto row_ref = util::search(uncovered_rows, row_idx);
 		if (row_ref != uncovered_rows.end())
-			remove_by_ref(uncovered_rows, row_ref);
+			util::remove_by_ref(uncovered_rows, *row_ref);
 	}
 }
 
