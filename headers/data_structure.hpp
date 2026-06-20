@@ -1,3 +1,6 @@
+#ifndef DATA_STRUCTURE_HPP
+#define DATA_STRUCTURE_HPP
+
 #include <vector>
 #include <string>
 
@@ -42,3 +45,5 @@ class SCPSolution {
 };
 
 SCPSolution empty_solution(SCPInstance& instance);
+
+#endif

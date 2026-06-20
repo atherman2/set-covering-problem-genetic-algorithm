@@ -1,4 +1,5 @@
 #include "data_structure.hpp"
+#include "population.hpp"
 #include <iostream>
 
 int main(int argc, char* argv[]) {
@@ -19,6 +20,14 @@ int main(int argc, char* argv[]) {
 
     instance.print_columns();
     instance.print_rows();
+
+    SCPSolution sol = random_solution(instance);
+
+    std::cout << "\n--- Solucao construida ---\n";
+    std::cout << "Custo total: " << sol.cost << "\n";
+    std::cout << "Numero de colunas usadas: " << sol.columns_used.size() << "\n";
+    std::cout << "Linhas não cobertas: " << sol.uncovered_rows.size() << "\n";
+    std::cout << "Solucao valida? " << (sol.is_valid() ? "SIM" : "NAO") << "\n";
 
     return 0;
 }
