@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "util.hpp"
 
 SCPColumn::SCPColumn(float cost, std::vector<int> rows)
 	: cost(cost), covered_rows(rows) { }
@@ -101,6 +102,18 @@ bool SCPSolution::is_valid() {
 
 void SCPSolution::remove_column(int column) {
 	// TODO
+}
+
+void SCPSolution::add_column(int column_idx, SCPInstance& instance) {
+	columns_used.push_back(column_idx);
+	auto& column = instance.columns.at(column_idx);
+	cost += column.cost;
+	for (int i = 0; i < column.covered_rows.size(); i++) {
+		auto row_idx = column.covered_rows.at(i);
+		auto& row_ref = util::search(uncovered_rows, row_idx);
+		if (row_ref != uncovered_rows.end())
+			remove_by_ref(uncovered_rows, row_ref);
+	}
 }
 
 SCPSolution empty_solution(SCPInstance &instance) {

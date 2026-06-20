@@ -15,7 +15,7 @@ namespace util {
     template <typename T>
     T& greatest(std::vector<T>& vec) {
         if (vec.empty()) {
-            throw std::logic_error("Error in util::greatest: The vector is not empty.");
+            throw std::logic_error("Error in util::greatest: The vector is empty.");
         }
         return *std::max_element(vec.begin(), vec.end());
     }
@@ -23,7 +23,7 @@ namespace util {
     template <typename T>
     const T& greatest(const std::vector<T>& vec) {
         if (vec.empty()) {
-            throw std::logic_error("Error in utill::greatest: The vector is not empty.");
+            throw std::logic_error("Error in utill::greatest: The vector is empty.");
         }
         return *std::max_element(vec.begin(), vec.end());
     }
@@ -31,7 +31,7 @@ namespace util {
     template <typename T>
     T& smallest(std::vector<T>& vec) {
         if (vec.empty()) {
-            throw std::logic_error("Error in utill::smallest: The vector is not empty.");
+            throw std::logic_error("Error in utill::smallest: The vector is empty.");
         }
         return *std::min_element(vec.begin(), vec.end());
     }
@@ -39,7 +39,7 @@ namespace util {
     template <typename T>
     const T& smallest(const std::vector<T>& vec) {
         if (vec.empty()) {
-            throw std::logic_error("Error in utill::smallest: The vector is not empty.");
+            throw std::logic_error("Error in utill::smallest: The vector is empty.");
         }
         return *std::min_element(vec.begin(), vec.end());
     }
@@ -61,6 +61,24 @@ namespace util {
         if (index >= 0 && static_cast<size_t>(index) < vec.size()) {
             vec.erase(vec.begin() + index);
         }
+    }
+
+    template <typename T1, typename T2>
+    std::pair<T1, T2>& smallest_first(std::vector<std::pair<T1, T2>>& vec) {
+        if (vec.empty()) {
+            throw std::runtime_error("Error in utill::smallest_first: The vector is empty.");
+        }
+
+        auto it = std::min_element(vec.begin(), vec.end(), [](const auto& a, const auto& b) {
+            return a.first < b.first;
+        });
+
+        return *it;
+    }
+
+    template <typename T>
+    T& search(std::vector<T>& vec, const T& element) {
+    	return std::find(vec.begin, vec.end, element);
     }
 }
 
