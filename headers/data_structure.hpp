@@ -40,7 +40,7 @@ class SCPSolution {
         std::vector<int> uncovered_rows;
         SCPSolution(float cost, std::vector<int> columns_used, std::vector<int> unconvered_rows);
         bool is_valid();
-        void remove_column(int column);
+        void remove_column(int column_idx, SCPInstance& instance);
         void add_column(int column_idx, SCPInstance& instance);
 };
 

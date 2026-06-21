@@ -100,8 +100,28 @@ bool SCPSolution::is_valid() {
 	return uncovered_rows.size() == 0;
 }
 
-void SCPSolution::remove_column(int column) {
-	// TODO
+void SCPSolution::remove_column(int column_idx, SCPInstance& instance) {
+	util::remove(columns_used, column_idx);
+
+	auto& column = instance.columns.at(column_idx);
+	cost -= column.cost;
+
+	for (int i = 0; i < column.covered_rows.size(); i++) {
+		auto row_idx = column.covered_rows.at(i);
+		auto& row = instance.rows.at(row_idx);
+
+		bool still_covered = false;
+		for (int j = 0; j < row.covered_by.size(); j++) {
+			auto other_column_idx = row.covered_by.at(j);
+			if (other_column_idx != column_idx && util::is_in(columns_used, other_column_idx)) {
+				still_covered = true;
+				break;
+			}
+		}
+
+		if (!still_covered)
+			uncovered_rows.push_back(row_idx);
+	}
 }
 
 void SCPSolution::add_column(int column_idx, SCPInstance& instance) {
