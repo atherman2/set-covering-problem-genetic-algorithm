@@ -29,5 +29,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Linhas não cobertas: " << sol.uncovered_rows.size() << "\n";
     std::cout << "Solucao valida? " << (sol.is_valid() ? "SIM" : "NAO") << "\n";
 
+    std::cout << "\n--- Teste de swap_local_search ---\n";
+    swap_local_search(sol, instance);
+    std::cout << "Custo depois: " << sol.cost << "\n";
+    std::cout << "Colunas depois: " << sol.columns_used.size() << "\n";
+
     return 0;
 }

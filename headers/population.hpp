@@ -13,3 +13,7 @@ using columnEntry = std::pair<float, int>; // <score, column>
 std::vector<columnEntry> build_columns_rcl(std::vector<int> unused_columns, SCPSolution &solution, SCPInstance &instance);
 
 columnEntry buildEntry(int column, SCPSolution &solution, SCPInstance &instance);
+
+bool column_covers_all(int column_idx, std::vector<int>& rows_to_cover, SCPInstance& instance);
+
+void swap_local_search(SCPSolution& solution, SCPInstance& instance);
