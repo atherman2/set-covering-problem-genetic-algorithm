@@ -2,6 +2,7 @@
 #include "constants.hpp"
 #include "util.hpp"
 #include "random_generator.hpp"
+#include <iostream>
 
 SCPSolution fill_initial_population(std::vector<SCPSolution> &population, SCPInstance &instance) {
 	auto sol = random_solution(instance);
@@ -122,4 +123,40 @@ void swap_local_search(SCPSolution& solution, SCPInstance& instance) {
 		else
 			solution.add_column(column_a_idx, instance); // Or else, restore the original column
 	}
+}
+
+/*
+ * Fusion crossover
+ * Merges both parents, sorts columns by their cost/benefit ratio (worst first), and drops redundant columns to minimize the final solution cost
+ */
+SCPSolution crossover(SCPSolution& parent_a, SCPSolution& parent_b, SCPInstance& instance) {
+    SCPSolution child = empty_solution(instance);
+
+    // Combine all columns from parent A and B into the child
+    for (int col : parent_a.columns_used)
+        child.add_column(col, instance);
+
+    for (int col : parent_b.columns_used)
+        if (!util::is_in(child.columns_used, col))
+            child.add_column(col, instance);
+
+    // Sort columns by cost-efficiency ratio (cost / total rows covered), desceding order to target and remove the worst columns first
+    std::sort(child.columns_used.begin(), child.columns_used.end(),
+    [&instance](int a, int b) {
+        float score_a = instance.columns.at(a).cost / (float)instance.columns.at(a).covered_rows.size();
+        float score_b = instance.columns.at(b).cost / (float)instance.columns.at(b).covered_rows.size();
+        return score_a > score_b;
+    });
+
+    // Create a static copy of the columns to safely iterate through
+    auto columns_to_check = child.columns_used;
+    for (int col : columns_to_check) {
+        child.remove_column(col, instance);
+        
+        // If removing the column leaves any row uncovered, restore it
+        if (child.uncovered_rows.size() > 0)
+            child.add_column(col, instance);
+    }
+
+    return child;
 }

@@ -18,8 +18,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Number of columns: "
               << instance.num_columns << "\n\n";
 
-    instance.print_columns();
-    instance.print_rows();
+    //instance.print_columns();
+    //instance.print_rows();
 
     SCPSolution sol = random_solution(instance);
 
@@ -34,5 +34,17 @@ int main(int argc, char* argv[]) {
     std::cout << "Custo depois: " << sol.cost << "\n";
     std::cout << "Colunas depois: " << sol.columns_used.size() << "\n";
 
+    std::cout << "\n--- Teste de crossover ---\n";
+    SCPSolution parent_a = random_solution(instance);
+    SCPSolution parent_b = random_solution(instance);
+
+    std::cout << "Custo pai A: " << parent_a.cost << "\n";
+    std::cout << "Custo pai B: " << parent_b.cost << "\n";
+
+    SCPSolution child = crossover(parent_a, parent_b, instance);
+
+    std::cout << "Filho: custo = " << child.cost
+              << ", colunas = " << child.columns_used.size()
+              << ", valido = " << (child.is_valid() ? "SIM" : "NAO") << "\n";
     return 0;
 }

@@ -1,6 +1,7 @@
 #include "data_structure.hpp"
 #include <vector>
 #include <utility>
+#include <algorithm>
 
 SCPSolution fill_initial_population(std::vector<SCPSolution>& population, SCPInstance& instance);
 
@@ -17,3 +18,5 @@ columnEntry buildEntry(int column, SCPSolution &solution, SCPInstance &instance)
 bool column_covers_all(int column_idx, std::vector<int>& rows_to_cover, SCPInstance& instance);
 
 void swap_local_search(SCPSolution& solution, SCPInstance& instance);
+
+SCPSolution crossover(SCPSolution& parent_a, SCPSolution& parent_b, SCPInstance& instance);
