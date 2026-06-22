@@ -13,6 +13,17 @@ namespace util {
     }
 
     template <typename T>
+    bool ref_is_in(const std::vector<T>& vec, const T& element) {
+        const T* target_address = &element;
+
+        auto it = std::find_if(vec.begin(), vec.end(), [target_address](const T& item) {
+            return &item == target_address;
+        });
+
+        return it != vec.end();
+    }
+
+    template <typename T>
     T& greatest(std::vector<T>& vec) {
         if (vec.empty()) {
             throw std::logic_error("Error in util::greatest: The vector is empty.");

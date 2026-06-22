@@ -1,2 +1,4 @@
 inline constexpr int POPULATION_SIZE = 100;
 inline constexpr int COL_RCL_SIZE = 10;
+inline constexpr int PARENT_PAIRS_COUNT = 5;
+inline constexpr int MAX_GENERATION = 100;

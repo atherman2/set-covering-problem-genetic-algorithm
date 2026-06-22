@@ -8,12 +8,15 @@ SCPSolution fill_initial_population(std::vector<SCPSolution> &population, SCPIns
 	auto sol = random_solution(instance);
 	population.push_back(sol);
 	auto best_sol = sol;
-	for (int i = 1; i <= POPULATION_SIZE; i++) {
+	for (int i = 2; i <= POPULATION_SIZE; i++) {
+	    if(i % 10 == 0)
+			std::cout << i << "%, ";
 		auto sol = random_solution(instance);
 		population.push_back(sol);
 		if (sol.cost < best_sol.cost)
 			best_sol = sol;
 	}
+	std::cout << "\n";
 	return best_sol;
 }
 
@@ -64,6 +67,21 @@ columnEntry buildEntry(int column_idx, SCPSolution &solution, SCPInstance &insta
 	return {covered_count/column.cost, column_idx};
 }
 
+void select_parents(std::vector<SCPSolution>& parents, std::vector<SCPSolution>& population) {
+    while(parents.size() < (2 * PARENT_PAIRS_COUNT)) {
+        auto tournament_participants_idx = RandomGenerator::uniqueRangeSet(0, POPULATION_SIZE - 1, 3);
+        std::vector<SCPSolution> tournament_participants;
+        for (int i = 0; i < tournament_participants_idx.size(); i++)
+            tournament_participants.push_back(population.at(tournament_participants_idx.at(i)));
+        auto best = tournament_participants.at(0);
+        for (int i = 1; i < tournament_participants.size(); i++)
+            if (tournament_participants.at(i).cost < best.cost)
+                best = tournament_participants.at(i);
+        if (!util::ref_is_in(parents, best))
+            parents.push_back(best);
+    }
+}
+
 /*
 - Checks if a given column covers all rows in the provided list.
 - Returns true if the column covers every row.
@@ -110,7 +128,7 @@ void swap_local_search(SCPSolution& solution, SCPInstance& instance) {
 
 			if (column_b_cost >= best_b_cost)
 				continue;	// Skip if not cheaper than current best
-			
+
 			// Check if this column covers all currently uncovered rows
 			if (column_covers_all(column_b_idx, solution.uncovered_rows, instance)) {
 				best_b_idx = column_b_idx;
@@ -152,11 +170,42 @@ SCPSolution crossover(SCPSolution& parent_a, SCPSolution& parent_b, SCPInstance&
     auto columns_to_check = child.columns_used;
     for (int col : columns_to_check) {
         child.remove_column(col, instance);
-        
+
         // If removing the column leaves any row uncovered, restore it
         if (child.uncovered_rows.size() > 0)
             child.add_column(col, instance);
     }
 
     return child;
+}
+
+SCPSolution make_children(std::vector<SCPSolution>& children, std::vector<SCPSolution>& parents, SCPInstance& instance) {
+    auto best_sol = crossover(parents.at(0), parents.at(1), instance);
+    for (int i = 1; (2 * i + 1) < parents.size(); i++) {
+        auto child = crossover(parents.at(2 * i), parents.at(2 * i + 1), instance);
+        if (child.cost < best_sol.cost)
+            best_sol = child;
+        children.push_back(child);
+    }
+    return best_sol;
+}
+
+SCPSolution best_solution(SCPSolution& sol_a, SCPSolution& sol_b) {
+    if (sol_a.cost <= sol_b.cost) {
+        return sol_a;
+    }
+    return sol_b;
+}
+
+SCPSolution genetic_algorithm(SCPInstance& instance) {
+    int current_generation = 1;
+    std::vector<SCPSolution> population, parents, children;
+    SCPSolution best_known_solution = fill_initial_population(population, instance);
+    while (current_generation <= MAX_GENERATION) {
+        select_parents(parents, population);
+        auto best_child = make_children(children, parents, instance);
+        best_known_solution = best_solution(best_known_solution, best_child);
+        current_generation++;
+    }
+    return best_known_solution;
 }
