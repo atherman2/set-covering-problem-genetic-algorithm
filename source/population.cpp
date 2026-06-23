@@ -82,10 +82,10 @@ void select_parents(std::vector<SCPSolution>& parents, std::vector<SCPSolution>&
     }
 }
 
-/*
-- Checks if a given column covers all rows in the provided list.
-- Returns true if the column covers every row.
-*/
+/**
+ * Checks if a given column covers all rows in the provided list.
+ * Returns true if the column covers every row.
+ */
 bool column_covers_all(int column_idx, std::vector<int>& rows_to_cover, SCPInstance& instance) {
 	auto& column = instance.columns.at(column_idx);
 
@@ -97,11 +97,11 @@ bool column_covers_all(int column_idx, std::vector<int>& rows_to_cover, SCPInsta
 	return true;
 }
 
-/* Local Search Swap
-Tries to improve the current solution by replacing columns with cheaper ones.
-- For each column in the solution, attempts to remove it.
-- If the removal breaks coverage, it looks for a cheaper column that can cover all uncovered rows. If found, it replaces the original; otherwise, it restores it.
-*/
+/** Local Search Swap
+ * Tries to improve the current solution by replacing columns with cheaper ones.
+ * For each column in the solution, attempts to remove it.
+ * If the removal breaks coverage, it looks for a cheaper column that can cover all uncovered rows. If found, it replaces the original; otherwise, it restores it.
+ */
 void swap_local_search(SCPSolution& solution, SCPInstance& instance) {
 	auto columns_to_check = solution.columns_used;
 
@@ -143,7 +143,7 @@ void swap_local_search(SCPSolution& solution, SCPInstance& instance) {
 	}
 }
 
-/*
+/**
  * Fusion crossover
  * Merges both parents, sorts columns by their cost/benefit ratio (worst first), and drops redundant columns to minimize the final solution cost
  */
@@ -208,4 +208,55 @@ SCPSolution genetic_algorithm(SCPInstance& instance) {
         current_generation++;
     }
     return best_known_solution;
+}
+
+/**
+ * Mutation operator
+ * Removes k (defined in constants.hpp) random columns from the solution.
+ * Repairs by randomly picking columns that cover uncovered rows.
+ * If a row has no available column to cover it, restores a removed column as fallback.
+ */
+void mutation(SCPSolution& solution, SCPInstance& instance) {
+    if (solution.columns_used.empty()) return;
+
+    // Stores removed columns in case we need them for fallback
+    std::vector<int> removed_cols;
+    for (int i = 0; i < MUTATION_K && !solution.columns_used.empty(); i++) {
+        int random_idx = RandomGenerator::inRange(0, (int)solution.columns_used.size() - 1);
+        int col = solution.columns_used.at(random_idx);
+        removed_cols.push_back(col);
+        solution.remove_column(col, instance);
+    }
+
+    // Picks a random uncovered row and a random column that covers it
+    int max_attempts = (int)solution.uncovered_rows.size() * 2;
+    int failed_attempts = 0;
+
+    while (!solution.uncovered_rows.empty()) {
+        if (failed_attempts > max_attempts && !removed_cols.empty()) {  // Fallback
+            solution.add_column(removed_cols.back(), instance);
+            removed_cols.pop_back();
+            failed_attempts = 0;
+            continue;
+        }
+
+        // Picks a random uncovered row
+        int row_idx = RandomGenerator::inRange(0, (int)solution.uncovered_rows.size() - 1);
+        int row = solution.uncovered_rows.at(row_idx);
+
+        std::vector<int> candidates;
+        for (int col : instance.rows.at(row).covered_by)
+            if (!util::is_in(solution.columns_used, col))
+                candidates.push_back(col);
+
+        if (candidates.empty()) {
+            failed_attempts++;
+            continue;
+        }
+
+        // Picks and adds a random candidate
+        int chosen = candidates.at(RandomGenerator::inRange(0, (int)candidates.size() - 1));
+        solution.add_column(chosen, instance);
+        failed_attempts = 0;
+    }
 }

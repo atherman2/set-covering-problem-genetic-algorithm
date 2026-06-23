@@ -46,5 +46,17 @@ int main(int argc, char* argv[]) {
     std::cout << "Filho: custo = " << child.cost
               << ", colunas = " << child.columns_used.size()
               << ", valido = " << (child.is_valid() ? "SIM" : "NAO") << "\n";
+
+    std::cout << "\n--- Teste de mutate ---\n";
+    SCPSolution to_mutate = random_solution(instance);
+    std::cout << "Custo antes: " << to_mutate.cost << "\n";
+    std::cout << "Colunas antes: " << to_mutate.columns_used.size() << "\n";
+
+    mutation(to_mutate, instance);
+
+    std::cout << "Custo depois: " << to_mutate.cost << "\n";
+    std::cout << "Colunas depois: " << to_mutate.columns_used.size() << "\n";
+    std::cout << "Valido? " << (to_mutate.is_valid() ? "SIM" : "NAO") << "\n";
+    
     return 0;
 }

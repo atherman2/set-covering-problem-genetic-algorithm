@@ -28,3 +28,5 @@ SCPSolution make_children(std::vector<SCPSolution>& children, std::vector<SCPSol
 SCPSolution best_solution(SCPSolution& sol_a, SCPSolution& sol_b);
 
 SCPSolution genetic_algorithm(SCPInstance& instance);
+
+void mutation(SCPSolution& solution, SCPInstance& instance);
