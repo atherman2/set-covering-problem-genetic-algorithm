@@ -2,6 +2,7 @@
 #include "constants.hpp"
 #include "util.hpp"
 #include "random_generator.hpp"
+#include <algorithm>
 #include <iostream>
 #include <vector>
 
@@ -202,6 +203,20 @@ SCPSolution best_solution(SCPSolution& sol_a, SCPSolution& sol_b) {
     return sol_b;
 }
 
+SCPSolution mutate_children(std::vector<SCPSolution>& children, SCPInstance& instance) {
+	int mutation_count = std::max((int) (POPULATION_SIZE * MUTATION_RATE), 1);
+	auto selected_children_indexes = RandomGenerator::uniqueRangeSet(0, children.size(), mutation_count);
+	for (int i = 0; i < selected_children_indexes.size(); i++) {
+		mutation(children.at(selected_children_indexes.at(i)), instance);
+	}
+	auto best_sol = children.at(selected_children_indexes.at(0));
+	for (int i = 1; i < selected_children_indexes.size(); i++) {
+		if (children.at(selected_children_indexes.at(i)).cost < best_sol.cost)
+			best_sol = children.at(selected_children_indexes.at(i));
+	}
+	return best_sol;
+}
+
 SCPSolution genetic_algorithm(SCPInstance& instance) {
     int current_generation = 1;
     std::vector<SCPSolution> population, parents, children;
@@ -210,6 +225,8 @@ SCPSolution genetic_algorithm(SCPInstance& instance) {
         select_parents(parents, population);
         auto best_child = make_children(children, parents, instance);
         best_known_solution = best_solution(best_known_solution, best_child);
+        auto best_mutated_child = mutate_children(children, instance);
+        best_known_solution = best_solution(best_known_solution, best_mutated_child);
         current_generation++;
     }
     return best_known_solution;
