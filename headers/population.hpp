@@ -29,6 +29,10 @@ SCPSolution best_solution(SCPSolution& sol_a, SCPSolution& sol_b);
 
 SCPSolution mutate_children(std::vector<SCPSolution>& children, SCPInstance& instance);
 
+void elitism(std::vector<SCPSolution>& population, std::vector<SCPSolution>& children);
+
+int worst_in_vector(std::vector<int>& indexes, std::vector<SCPSolution>&);
+
 SCPSolution genetic_algorithm(SCPInstance& instance);
 
 void mutation(SCPSolution& solution, SCPInstance& instance);

@@ -4,6 +4,7 @@
 #include "random_generator.hpp"
 #include <algorithm>
 #include <iostream>
+#include <ostream>
 #include <vector>
 
 SCPSolution fill_initial_population(std::vector<SCPSolution> &population, SCPInstance &instance) {
@@ -187,7 +188,7 @@ SCPSolution crossover(SCPSolution& parent_a, SCPSolution& parent_b, SCPInstance&
 
 SCPSolution make_children(std::vector<SCPSolution>& children, std::vector<SCPSolution>& parents, SCPInstance& instance) {
     auto best_sol = crossover(parents.at(0), parents.at(1), instance);
-    for (int i = 1; (2 * i + 1) < parents.size(); i++) {
+    for (int i = 0; (2 * i + 1) < parents.size(); i++) {
         auto child = crossover(parents.at(2 * i), parents.at(2 * i + 1), instance);
         if (child.cost < best_sol.cost)
             best_sol = child;
@@ -205,16 +206,60 @@ SCPSolution best_solution(SCPSolution& sol_a, SCPSolution& sol_b) {
 
 SCPSolution mutate_children(std::vector<SCPSolution>& children, SCPInstance& instance) {
 	int mutation_count = std::max((int) (POPULATION_SIZE * MUTATION_RATE), 1);
-	auto selected_children_indexes = RandomGenerator::uniqueRangeSet(0, children.size(), mutation_count);
+	std::cout << "children.size() = " << children.size() << std::endl;
+	auto selected_children_indexes = RandomGenerator::uniqueRangeSet(0, children.size() - 1, mutation_count);
 	for (int i = 0; i < selected_children_indexes.size(); i++) {
+		std::cout << i << std::endl;
 		mutation(children.at(selected_children_indexes.at(i)), instance);
 	}
 	auto best_sol = children.at(selected_children_indexes.at(0));
 	for (int i = 1; i < selected_children_indexes.size(); i++) {
+		std::cout << "i = " << i << std::endl;
 		if (children.at(selected_children_indexes.at(i)).cost < best_sol.cost)
+			std::cout << selected_children_indexes.at(i) << std::endl;
 			best_sol = children.at(selected_children_indexes.at(i));
 	}
 	return best_sol;
+}
+
+void elitism(std::vector<SCPSolution>& population, std::vector<SCPSolution>& children) {
+	std::cout << "elitism" << std::endl;
+	std::cout << "population.size() = " << population.size() << std::endl;
+	std::vector<int> elite_indexes;
+	int elite_size = (int) (population.size() * ELITISM_RATE);
+	int i = 0;
+	while (elite_indexes.size() < elite_size) {
+		elite_indexes.push_back(i);
+		i++;
+	}
+	while (i < population.size()) {
+		auto worst_index = worst_in_vector(elite_indexes, population);
+		if (population.at(i).cost < population.at(worst_index).cost) {
+			util::remove(elite_indexes, worst_index);
+			elite_indexes.push_back(i);
+		}
+		i++;
+	}
+	std::cout << "elite_indexes built" << std::endl;
+	i = 0;
+	int j = 0;
+	while (i < children.size()) {
+		if (!util::is_in(elite_indexes, j)) {
+			population.at(j) = children.at(i);
+			i++;
+		}
+		j++;
+	}
+	std::cout << "elitism finished" << std::endl;
+}
+
+int worst_in_vector(std::vector<int>& indexes, std::vector<SCPSolution>& population) {
+	auto worst = indexes.at(0);
+	for (int i = 0; i < indexes.size(); i++) {
+		if (population.at(indexes.at(i)).cost > population.at(worst).cost)
+			worst = indexes.at(i);
+	}
+	return worst;
 }
 
 SCPSolution genetic_algorithm(SCPInstance& instance) {
@@ -222,11 +267,13 @@ SCPSolution genetic_algorithm(SCPInstance& instance) {
     std::vector<SCPSolution> population, parents, children;
     SCPSolution best_known_solution = fill_initial_population(population, instance);
     while (current_generation <= MAX_GENERATION) {
+    	parents = children = {};
         select_parents(parents, population);
         auto best_child = make_children(children, parents, instance);
         best_known_solution = best_solution(best_known_solution, best_child);
         auto best_mutated_child = mutate_children(children, instance);
         best_known_solution = best_solution(best_known_solution, best_mutated_child);
+        elitism(population, children);
         current_generation++;
     }
     return best_known_solution;
