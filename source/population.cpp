@@ -25,28 +25,35 @@ SCPSolution fill_initial_population(std::vector<SCPSolution> &population, SCPIns
 SCPSolution random_solution(SCPInstance& instance) {
 	SCPSolution sol = empty_solution(instance);
 	auto unused_columns = instance.columns_range;
+	std::vector<columnEntry> unused_entries;
+	unused_entries.resize(unused_columns.size());
+	for (int i = 0; i < unused_columns.size(); i++) {
+		unused_entries.push_back(buildEntry(unused_columns.at(i), sol, instance));
+	}
 	int i = 1;
 	while (sol.uncovered_rows.size() > 0) {
-		// std::cout << i << " ";
 		i++;
-		semi_greedy_add_column(unused_columns, sol, instance);
+		semi_greedy_add_column(unused_entries, sol, instance);
 	}
-	// std::cout << "\n";
 	return sol;
 }
 
-void semi_greedy_add_column(std::vector<int>& unused_columns, SCPSolution &solution, SCPInstance &instance) {
-	auto rcl = build_columns_rcl(unused_columns, solution, instance);
+void semi_greedy_add_column(std::vector<columnEntry>& unused_entries, SCPSolution& solution, SCPInstance& instance) {
+	auto rcl = build_columns_rcl(unused_entries, solution, instance);
 	auto new_column_rcl_idx = RandomGenerator::inRange(0, (int)rcl.size() - 1);
-	solution.add_column(rcl.at(new_column_rcl_idx).second, instance);
-	util::remove(unused_columns, rcl.at(new_column_rcl_idx).second);
+	auto new_column_entry = rcl.at(new_column_rcl_idx);
+	solution.add_column(new_column_entry.second, instance);
+	// util::remove(unused_columns, rcl.at(new_column_rcl_idx).second);
+	remove_entry(unused_entries, new_column_entry.second);
+	update_entries(unused_entries, instance.columns.at(new_column_entry.second).covered_rows, solution, instance);
 }
 
-std::vector<columnEntry> build_columns_rcl(std::vector<int>& unused_columns, SCPSolution &solution, SCPInstance &instance) {
+std::vector<columnEntry> build_columns_rcl(std::vector<columnEntry>& unused_entries, SCPSolution &solution, SCPInstance &instance) {
 	std::vector<columnEntry> rcl;
 	rcl.reserve(COL_RCL_SIZE);
-	for (int i = 0; i < unused_columns.size(); i++) {
-		auto entry = buildEntry(unused_columns.at(i), solution, instance);
+	columnEntry entry;
+	for (int i = 0; i < unused_entries.size(); i++) {
+		entry = unused_entries.at(i);
 		if (i < COL_RCL_SIZE)
 			rcl.emplace_back(entry);
 		else {
@@ -58,6 +65,33 @@ std::vector<columnEntry> build_columns_rcl(std::vector<int>& unused_columns, SCP
 		}
 	}
 	return rcl;
+}
+
+void remove_entry(std::vector<columnEntry>& entries, int column) {
+	for (int i = 0; i < entries.size(); i++) {
+		if (entries.at(i).second == column)
+			entries.erase(entries.begin() + i);
+			// util::remove_by_ref(entries, &entries.at(i));
+	}
+}
+
+void update_entries(std::vector<columnEntry>& entries, const std::vector<int>& covered_rows, SCPSolution& solution, SCPInstance& instance) {
+	auto columns_mask = columns_to_be_recalculated(covered_rows, instance);
+	for (int i = 0; i < entries.size(); i++) {
+		if (columns_mask.at(entries.at(i).second))
+			entries.at(i) = buildEntry(entries.at(i).second, solution, instance);
+	}
+}
+
+std::vector<bool> columns_to_be_recalculated(const std::vector<int>& covered_rows, SCPInstance& instance) {
+	std::vector<bool> result;
+	result.resize(instance.num_columns);
+	for (int i = 0; i < covered_rows.size(); i++) {
+		auto covered_by = instance.rows.at(covered_rows.at(i)).covered_by;
+		for (int j = 0; j < covered_by.size(); j++)
+			result.at(covered_by.at(j));
+	}
+	return result;
 }
 
 columnEntry buildEntry(int column_idx, SCPSolution &solution, SCPInstance &instance) {
@@ -206,25 +240,19 @@ SCPSolution best_solution(SCPSolution& sol_a, SCPSolution& sol_b) {
 
 SCPSolution mutate_children(std::vector<SCPSolution>& children, SCPInstance& instance) {
 	int mutation_count = std::max((int) (POPULATION_SIZE * MUTATION_RATE), 1);
-	std::cout << "children.size() = " << children.size() << std::endl;
 	auto selected_children_indexes = RandomGenerator::uniqueRangeSet(0, children.size() - 1, mutation_count);
 	for (int i = 0; i < selected_children_indexes.size(); i++) {
-		std::cout << i << std::endl;
 		mutation(children.at(selected_children_indexes.at(i)), instance);
 	}
 	auto best_sol = children.at(selected_children_indexes.at(0));
 	for (int i = 1; i < selected_children_indexes.size(); i++) {
-		std::cout << "i = " << i << std::endl;
 		if (children.at(selected_children_indexes.at(i)).cost < best_sol.cost)
-			std::cout << selected_children_indexes.at(i) << std::endl;
 			best_sol = children.at(selected_children_indexes.at(i));
 	}
 	return best_sol;
 }
 
 void elitism(std::vector<SCPSolution>& population, std::vector<SCPSolution>& children) {
-	std::cout << "elitism" << std::endl;
-	std::cout << "population.size() = " << population.size() << std::endl;
 	std::vector<int> elite_indexes;
 	int elite_size = (int) (population.size() * ELITISM_RATE);
 	int i = 0;
@@ -240,7 +268,6 @@ void elitism(std::vector<SCPSolution>& population, std::vector<SCPSolution>& chi
 		}
 		i++;
 	}
-	std::cout << "elite_indexes built" << std::endl;
 	i = 0;
 	int j = 0;
 	while (i < children.size()) {
@@ -250,7 +277,6 @@ void elitism(std::vector<SCPSolution>& population, std::vector<SCPSolution>& chi
 		}
 		j++;
 	}
-	std::cout << "elitism finished" << std::endl;
 }
 
 int worst_in_vector(std::vector<int>& indexes, std::vector<SCPSolution>& population) {
@@ -266,6 +292,7 @@ SCPSolution genetic_algorithm(SCPInstance& instance) {
     int current_generation = 1;
     std::vector<SCPSolution> population, parents, children;
     SCPSolution best_known_solution = fill_initial_population(population, instance);
+    std::cout << best_known_solution.cost << std::endl;
     while (current_generation <= MAX_GENERATION) {
     	parents = children = {};
         select_parents(parents, population);
@@ -275,6 +302,7 @@ SCPSolution genetic_algorithm(SCPInstance& instance) {
         best_known_solution = best_solution(best_known_solution, best_mutated_child);
         elitism(population, children);
         current_generation++;
+        std::cout << best_known_solution.cost << std::endl;
     }
     return best_known_solution;
 }
