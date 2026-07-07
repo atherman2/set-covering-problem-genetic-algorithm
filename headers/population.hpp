@@ -7,7 +7,11 @@ SCPSolution fill_initial_population(std::vector<SCPSolution>& population, SCPIns
 
 SCPSolution random_solution(SCPInstance& instance);
 
-void semi_greedy_add_column(std::vector<int>& unused_columns, SCPSolution& solution, SCPInstance& instance);
+void semi_greedy_add_column(std::vector<int>& unused_columns,
+                            SCPSolution &solution,
+                            SCPInstance &instance,
+                            std::vector<int>& col_uncovered_count,
+                            std::vector<bool>& row_is_covered);
 
 using columnEntry = std::pair<float, int>; // <score, column>
 
