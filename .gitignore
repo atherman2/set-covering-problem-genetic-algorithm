@@ -68,6 +68,9 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+results/boxplot_gap.png
+results/resultados.csv
+results/resumo_por_instancia.csv
 
 # vscode data
 .vscode/
