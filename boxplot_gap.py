@@ -11,7 +11,6 @@ FOLDER = "results"
 RESULTS_FILE = os.path.join(FOLDER, "results.csv")
 BEST_KNOWN_FILE = os.path.join(FOLDER, "best_known.csv")
 SUMMARY_OUTPUT_FILE = os.path.join(FOLDER, "instance_summary.csv")
-BOXPLOT_FILE = os.path.join(FOLDER, "boxplot_gap.png")
 
 
 def main():
@@ -40,6 +39,7 @@ def main():
         (data["cost"] - data["best_known"]) / data["best_known"]
     ) * 100
 
+    # Calculate summary metrics per instance
     summary = data.groupby("instance").agg(
         best_cost=("cost", "min"),
         avg_cost=("cost", "mean"),
@@ -51,30 +51,26 @@ def main():
         runs=("cost", "count"),
     ).reset_index()
     summary = summary.round(2)
-
     summary.to_csv(SUMMARY_OUTPUT_FILE, index=False)
-    print(f"Instance summary saved to '{SUMMARY_OUTPUT_FILE}'")
-    print("\n--- Summary ---")
-    for _, row in summary.iterrows():
-        for col in summary.columns:
-            print(f"{col}: {row[col]}")
-        print()
 
-    sorted_instances = sorted(data["instance"].unique())
-    boxplot_data = [
-        data[data["instance"] == inst]["gap"].values
-        for inst in sorted_instances
-    ]
+    boxplot_folder = os.path.join(FOLDER, "boxplot")
+    os.makedirs(boxplot_folder, exist_ok=True)
 
-    plt.figure(figsize=(10, 6))
-    plt.boxplot(boxplot_data, label=sorted_instances, showmeans=True)
-    plt.ylabel("GAP (%)")
-    plt.xlabel("Instance")
-    plt.title("GAP distribution per instance (10 runs)")
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-    plt.savefig(BOXPLOT_FILE, dpi=150)
-    print(f"\nBoxplot saved to '{BOXPLOT_FILE}'")
+    # Generate a separate plot for each instance
+    for inst in sorted(data["instance"].unique()):
+        inst_data = data[data["instance"] == inst]["gap"].values
+        
+        clean_name = inst.replace("/", "_").replace(".dat", "")
+        output_path = os.path.join(boxplot_folder, f"boxplot_{clean_name}.png")
+        
+        plt.figure(figsize=(5, 5))
+        plt.boxplot(inst_data, label=[inst], showmeans=True)
+        plt.ylabel("GAP (%)")
+        plt.title(f"GAP Distribution - {clean_name}")
+        plt.tight_layout()
+        
+        plt.savefig(output_path, dpi=120)
+        plt.close()
 
 if __name__ == "__main__":
     main()
