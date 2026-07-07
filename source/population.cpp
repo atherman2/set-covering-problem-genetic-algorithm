@@ -262,10 +262,22 @@ int worst_in_vector(std::vector<int>& indexes, std::vector<SCPSolution>& populat
 	return worst;
 }
 
+SCPSolution apply_local_search(std::vector<SCPSolution>& solutions, SCPInstance& instance) {
+    swap_local_search(solutions.at(0), instance);
+    auto best_sol = solutions.at(0);
+    for (int i = 1; i < solutions.size(); i++) {
+        swap_local_search(solutions.at(i), instance);
+        best_sol = best_solution(best_sol, solutions.at(i));
+    }
+    return best_sol;
+}
+
 SCPSolution genetic_algorithm(SCPInstance& instance) {
     int current_generation = 1;
     std::vector<SCPSolution> population, parents, children;
     SCPSolution best_known_solution = fill_initial_population(population, instance);
+    auto best_first_gen = apply_local_search(population, instance);
+    best_known_solution = best_solution(best_known_solution, best_first_gen);
     while (current_generation <= MAX_GENERATION) {
     	parents = children = {};
         select_parents(parents, population);
@@ -273,6 +285,8 @@ SCPSolution genetic_algorithm(SCPInstance& instance) {
         best_known_solution = best_solution(best_known_solution, best_child);
         auto best_mutated_child = mutate_children(children, instance);
         best_known_solution = best_solution(best_known_solution, best_mutated_child);
+        auto best_new_gen = apply_local_search(children, instance);
+        best_known_solution = best_solution(best_known_solution, best_new_gen);
         elitism(population, children);
         current_generation++;
     }

@@ -33,6 +33,8 @@ void elitism(std::vector<SCPSolution>& population, std::vector<SCPSolution>& chi
 
 int worst_in_vector(std::vector<int>& indexes, std::vector<SCPSolution>&);
 
+SCPSolution apply_local_search(std::vector<SCPSolution>& children, SCPInstance& instance);
+
 SCPSolution genetic_algorithm(SCPInstance& instance);
 
 void mutation(SCPSolution& solution, SCPInstance& instance);
