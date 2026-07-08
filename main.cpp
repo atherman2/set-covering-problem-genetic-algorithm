@@ -1,6 +1,7 @@
 #include "data_structure.hpp"
 #include "population.hpp"
 #include <iostream>
+#include <chrono>
 
 int main(int argc, char* argv[]) {
 
@@ -18,45 +19,14 @@ int main(int argc, char* argv[]) {
     std::cout << "Number of columns: "
               << instance.num_columns << "\n\n";
 
-    //instance.print_columns();
-    //instance.print_rows();
+    auto start = std::chrono::high_resolution_clock::now();
+    auto best_sol = genetic_algorithm(instance);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsed = std::chrono::duration<double>(end - start).count();
+    std::cout << "Algorithm execution ended in " << elapsed << " seconds." << std::endl;
+    std::cout << "Columns used by solution:" << std::endl;
+    best_sol.print_columns_used();
+    std::cout << std::endl << "Solution cost: " << best_sol.cost << std::endl;
 
-    SCPSolution sol = random_solution(instance);
-
-    std::cout << "\n--- Solucao construida ---\n";
-    std::cout << "Custo total: " << sol.cost << "\n";
-    std::cout << "Numero de colunas usadas: " << sol.columns_used.size() << "\n";
-    std::cout << "Linhas não cobertas: " << sol.uncovered_rows.size() << "\n";
-    std::cout << "Solucao valida? " << (sol.is_valid() ? "SIM" : "NAO") << "\n";
-
-    std::cout << "\n--- Teste de swap_local_search ---\n";
-    swap_local_search(sol, instance);
-    std::cout << "Custo depois: " << sol.cost << "\n";
-    std::cout << "Colunas depois: " << sol.columns_used.size() << "\n";
-
-    std::cout << "\n--- Teste de crossover ---\n";
-    SCPSolution parent_a = random_solution(instance);
-    SCPSolution parent_b = random_solution(instance);
-
-    std::cout << "Custo pai A: " << parent_a.cost << "\n";
-    std::cout << "Custo pai B: " << parent_b.cost << "\n";
-
-    SCPSolution child = crossover(parent_a, parent_b, instance);
-
-    std::cout << "Filho: custo = " << child.cost
-              << ", colunas = " << child.columns_used.size()
-              << ", valido = " << (child.is_valid() ? "SIM" : "NAO") << "\n";
-
-    std::cout << "\n--- Teste de mutate ---\n";
-    SCPSolution to_mutate = random_solution(instance);
-    std::cout << "Custo antes: " << to_mutate.cost << "\n";
-    std::cout << "Colunas antes: " << to_mutate.columns_used.size() << "\n";
-
-    mutation(to_mutate, instance);
-
-    std::cout << "Custo depois: " << to_mutate.cost << "\n";
-    std::cout << "Colunas depois: " << to_mutate.columns_used.size() << "\n";
-    std::cout << "Valido? " << (to_mutate.is_valid() ? "SIM" : "NAO") << "\n";
-    
     return 0;
 }

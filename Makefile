@@ -10,7 +10,7 @@ $(EXE): main.cpp $(DS) $(RG) $(POP)
 	g++ main.cpp $(DS) $(RG) $(POP) -Iheaders -O2 -o $(EXE)
 
 run: $(EXE)
-	$(EXE) $(FILE)
+	$(EXE) $(file)
 
 ifeq ($(NO_LS),1)
 TEST_FLAGS = -DNO_LOCAL_SEARCH
