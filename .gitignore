@@ -68,7 +68,8 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
-results/results.csv
+results/results_with_ls.csv
+results/results_without_ls.csv
 results/instance_summary.csv
 results/boxplot
 

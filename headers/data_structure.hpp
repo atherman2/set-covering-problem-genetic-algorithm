@@ -8,7 +8,8 @@ class SCPColumn {
     public:
         float cost;
         std::vector<int> covered_rows;
-        SCPColumn(float cost, std::vector<int> rows);
+        std::vector<bool> covers_row;
+        SCPColumn(float cost, std::vector<int> rows, int num_rows);
 };
 
 class SCPRow {
@@ -38,7 +39,8 @@ class SCPSolution {
         float cost;
         std::vector<int> columns_used;
         std::vector<int> uncovered_rows;
-        SCPSolution(float cost, std::vector<int> columns_used, std::vector<int> unconvered_rows);
+        std::vector<bool> column_used;
+        SCPSolution(float cost, std::vector<int> columns_used, std::vector<int> unconvered_rows, int num_columns);
         bool is_valid();
         void remove_column(int column_idx, SCPInstance& instance);
         void add_column(int column_idx, SCPInstance& instance);

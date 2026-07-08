@@ -9,13 +9,25 @@ int main(int argc, char* argv[]) {
     // List of instances to test
     std::vector<std::string> instance_files = {
         "Testing/Teste_01.dat",
+        "Testing/Teste_02.dat",
+        "Testing/Teste_03.dat",
+        "Testing/Teste_04.dat",
+        "Testing/Teste_05.dat",
+        "Testing/Wren_01.dat",
+        "Testing/Wren_02.dat",
+        "Testing/Wren_03.dat",
+        "Testing/Wren_04.dat",
     };
 
     const int RUNS_PER_INSTANCE = 10;
 
     std::filesystem::create_directory("results");
-    std::ofstream csv("results/results.csv");
-    csv << "instance,run,cost,time_seconds\n";
+    #ifndef NO_LOCAL_SEARCH
+        std::ofstream csv("results/results_with_ls.csv");
+    #else
+        std::ofstream csv("results/results_without_ls.csv");
+    #endif
+        csv << "instance,run,cost,time_seconds\n";
 
     for (const auto& file_path : instance_files) {
         SCPInstance instance;
@@ -43,6 +55,10 @@ int main(int argc, char* argv[]) {
     }
 
     csv.close();
-    std::cout << "\nResults saved in results.csv\n";
+    #ifndef NO_LOCAL_SEARCH
+        std::cout << "\nResults saved in results/results_with_ls.csv\n";
+    #else
+        std::cout << "\nResults saved in results/results_without_ls.csv\n";
+    #endif
     return 0;
 }

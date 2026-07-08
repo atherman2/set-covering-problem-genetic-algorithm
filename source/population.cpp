@@ -10,6 +10,7 @@
 #include <queue>
 
 SCPSolution fill_initial_population(std::vector<SCPSolution> &population, SCPInstance &instance) {
+    population.reserve(POPULATION_SIZE);
     auto sol = random_solution(instance);
     population.push_back(sol);
     auto best_sol = sol;
@@ -92,9 +93,11 @@ void semi_greedy_add_column(std::vector<int>& unused_columns,
 }
 
 void select_parents(std::vector<SCPSolution>& parents, std::vector<SCPSolution>& population) {
+    parents.reserve(2 * PARENT_PAIRS_COUNT);
     while(parents.size() < (2 * PARENT_PAIRS_COUNT)) {
         auto tournament_participants_idx = RandomGenerator::uniqueRangeSet(0, POPULATION_SIZE - 1, 3);
         std::vector<SCPSolution> tournament_participants;
+        tournament_participants.reserve(tournament_participants_idx.size());
         for (int i = 0; i < tournament_participants_idx.size(); i++)
             tournament_participants.push_back(population.at(tournament_participants_idx.at(i)));
         auto best = tournament_participants.at(0);
@@ -114,7 +117,7 @@ bool column_covers_all(int column_idx, std::vector<int>& rows_to_cover, SCPInsta
 	auto& column = instance.columns.at(column_idx);
 
 	for (int i = 0; i < rows_to_cover.size(); i++) {
-		if (!util::is_in(column.covered_rows, rows_to_cover.at(i)))
+		if (!column.covers_row[rows_to_cover.at(i)])
 			return false;
 	}
 
@@ -145,7 +148,7 @@ void swap_local_search(SCPSolution& solution, SCPInstance& instance) {
 		float best_b_cost = column_a_cost;
 
 		for (int column_b_idx = 0; column_b_idx < instance.num_columns; column_b_idx++) {
-			if (util::is_in(solution.columns_used, column_b_idx))
+			if (solution.column_used[column_b_idx])
 				continue;	// Skip columns already in the solution
 
 			float column_b_cost = instance.columns.at(column_b_idx).cost;
@@ -179,7 +182,7 @@ SCPSolution crossover(SCPSolution& parent_a, SCPSolution& parent_b, SCPInstance&
         child.add_column(col, instance);
 
     for (int col : parent_b.columns_used)
-        if (!util::is_in(child.columns_used, col))
+        if (!child.column_used[col])
             child.add_column(col, instance);
 
     // Sort columns by cost-efficiency ratio (cost / total rows covered), desceding order to target and remove the worst columns first
@@ -204,6 +207,7 @@ SCPSolution crossover(SCPSolution& parent_a, SCPSolution& parent_b, SCPInstance&
 }
 
 SCPSolution make_children(std::vector<SCPSolution>& children, std::vector<SCPSolution>& parents, SCPInstance& instance) {
+    children.reserve(parents.size() / 2);
     auto best_sol = crossover(parents.at(0), parents.at(1), instance);
     for (int i = 0; (2 * i + 1) < parents.size(); i++) {
         auto child = crossover(parents.at(2 * i), parents.at(2 * i + 1), instance);
@@ -272,6 +276,9 @@ int worst_in_vector(std::vector<int>& indexes, std::vector<SCPSolution>& populat
 }
 
 SCPSolution apply_local_search(std::vector<SCPSolution>& solutions, SCPInstance& instance) {
+    // no local search
+    SCPSolution best_of_population(std::vector<SCPSolution>& solutions);
+
     swap_local_search(solutions.at(0), instance);
     auto best_sol = solutions.at(0);
     for (int i = 1; i < solutions.size(); i++) {
@@ -281,21 +288,37 @@ SCPSolution apply_local_search(std::vector<SCPSolution>& solutions, SCPInstance&
     return best_sol;
 }
 
+// best solution WITHOUT swap_local_search
+SCPSolution best_of_population(std::vector<SCPSolution>& solutions) {
+    auto best_sol = solutions.at(0);
+    for (int i = 1; i < solutions.size(); i++) {
+        best_sol = best_solution(best_sol, solutions.at(i));
+    }
+    return best_sol;
+}
+
 SCPSolution genetic_algorithm(SCPInstance& instance) {
     int current_generation = 1;
     std::vector<SCPSolution> population, parents, children;
     SCPSolution best_known_solution = fill_initial_population(population, instance);
+#ifndef NO_LOCAL_SEARCH
     auto best_first_gen = apply_local_search(population, instance);
+#else
+    auto best_first_gen = best_of_population(population);
+#endif
     best_known_solution = best_solution(best_known_solution, best_first_gen);
     while (current_generation <= MAX_GENERATION) {
-        std::cout << current_generation << "%," << std::endl;
     	parents = children = {};
         select_parents(parents, population);
         auto best_child = make_children(children, parents, instance);
         best_known_solution = best_solution(best_known_solution, best_child);
         auto best_mutated_child = mutate_children(children, instance);
         best_known_solution = best_solution(best_known_solution, best_mutated_child);
+#ifndef NO_LOCAL_SEARCH
         auto best_new_gen = apply_local_search(children, instance);
+#else
+        auto best_new_gen = best_of_population(children);
+#endif
         best_known_solution = best_solution(best_known_solution, best_new_gen);
         elitism(population, children);
         current_generation++;
@@ -338,8 +361,9 @@ void mutation(SCPSolution& solution, SCPInstance& instance) {
         int row = solution.uncovered_rows.at(row_idx);
 
         std::vector<int> candidates;
+        candidates.reserve(instance.rows.at(row).covered_by.size());
         for (int col : instance.rows.at(row).covered_by)
-            if (!util::is_in(solution.columns_used, col))
+            if (!solution.column_used[col])
                 candidates.push_back(col);
 
         if (candidates.empty()) {

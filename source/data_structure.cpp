@@ -4,11 +4,14 @@
 #include <iostream>
 #include "util.hpp"
 
-SCPColumn::SCPColumn(float cost, std::vector<int> rows)
-	: cost(cost), covered_rows(rows) { }
+SCPColumn::SCPColumn(float cost, std::vector<int> rows, int num_rows)
+	: cost(cost), covered_rows(std::move(rows)), covers_row(num_rows, false) {
+	for (int row_idx : covered_rows)
+		covers_row[row_idx] = true;
+}
 
 SCPRow::SCPRow(std::vector<int> columns)
-	: covered_by(columns) { }
+	: covered_by(std::move(columns)) { }
 
 bool SCPInstance::read_file(const std::string& file_path) {
 
@@ -56,7 +59,7 @@ bool SCPInstance::read_file(const std::string& file_path) {
             rows[row_idx].covered_by.push_back(column_idx); // row_idx is covered by column_idx
         }
 
-        columns.emplace_back(cost, covered_rows);
+        columns.emplace_back(cost, covered_rows, num_rows);
     }
     rows_range.resize(num_rows);
     for (int row_idx = 0; row_idx < num_rows; row_idx++)
@@ -93,8 +96,12 @@ void SCPInstance::print_rows() const {
     }
 }
 
-SCPSolution::SCPSolution(float cost, std::vector<int> columns_used, std::vector<int> unconvered_rows)
-	: cost(cost), columns_used(columns_used), uncovered_rows(unconvered_rows) { }
+SCPSolution::SCPSolution(float cost, std::vector<int> columns_used, std::vector<int> unconvered_rows, int num_columns)
+	: cost(cost), columns_used(std::move(columns_used)), uncovered_rows(std::move(unconvered_rows)),
+	  column_used(num_columns, false) {
+	for (int col : this->columns_used)
+		column_used[col] = true;
+}
 
 bool SCPSolution::is_valid() {
 	return uncovered_rows.size() == 0;
@@ -102,6 +109,7 @@ bool SCPSolution::is_valid() {
 
 void SCPSolution::remove_column(int column_idx, SCPInstance& instance) {
 	util::remove(columns_used, column_idx);
+	column_used[column_idx] = false;
 
 	auto& column = instance.columns.at(column_idx);
 	cost -= column.cost;
@@ -113,7 +121,7 @@ void SCPSolution::remove_column(int column_idx, SCPInstance& instance) {
 		bool still_covered = false;
 		for (int j = 0; j < row.covered_by.size(); j++) {
 			auto other_column_idx = row.covered_by.at(j);
-			if (other_column_idx != column_idx && util::is_in(columns_used, other_column_idx)) {
+			if (other_column_idx != column_idx && column_used[other_column_idx]) {
 				still_covered = true;
 				break;
 			}
@@ -126,6 +134,7 @@ void SCPSolution::remove_column(int column_idx, SCPInstance& instance) {
 
 void SCPSolution::add_column(int column_idx, SCPInstance& instance) {
 	columns_used.push_back(column_idx);
+	column_used[column_idx] = true;
 	auto& column = instance.columns.at(column_idx);
 	cost += column.cost;
 	for (int i = 0; i < column.covered_rows.size(); i++) {
@@ -137,5 +146,5 @@ void SCPSolution::add_column(int column_idx, SCPInstance& instance) {
 }
 
 SCPSolution empty_solution(SCPInstance &instance) {
-	return SCPSolution(0.0f, {}, instance.rows_range);
+	return SCPSolution(0.0f, {}, instance.rows_range, instance.num_columns);
 }

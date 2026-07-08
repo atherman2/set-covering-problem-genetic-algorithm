@@ -7,13 +7,18 @@ POP = source/population.cpp
 all: $(EXE)
 
 $(EXE): main.cpp $(DS) $(RG) $(POP)
-	g++ main.cpp $(DS) $(RG) $(POP) -Iheaders -o $(EXE)
+	g++ main.cpp $(DS) $(RG) $(POP) -Iheaders -O2 -o $(EXE)
 
 run: $(EXE)
 	$(EXE) $(FILE)
 
-$(EXE_TEST): testing.cpp $(DS) $(RG) $(POP)
-	g++ testing.cpp $(DS) $(RG) $(POP) -Iheaders -O2 -o $(EXE_TEST)
+ifeq ($(NO_LS),1)
+TEST_FLAGS = -DNO_LOCAL_SEARCH
+else
+TEST_FLAGS =
+endif
 
-test: $(EXE_TEST)
+.PHONY: test
+test:
+	g++ testing.cpp $(DS) $(RG) $(POP) -Iheaders -O2 $(TEST_FLAGS) -o $(EXE_TEST)
 	$(EXE_TEST)
