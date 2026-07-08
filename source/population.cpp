@@ -297,7 +297,7 @@ SCPSolution best_of_population(std::vector<SCPSolution>& solutions) {
     return best_sol;
 }
 
-SCPSolution genetic_algorithm(SCPInstance& instance) {
+SCPSolution genetic_algorithm(SCPInstance& instance, std::vector<double>* convergence_history) {
     int current_generation = 1;
     std::vector<SCPSolution> population, parents, children;
     SCPSolution best_known_solution = fill_initial_population(population, instance);
@@ -307,6 +307,8 @@ SCPSolution genetic_algorithm(SCPInstance& instance) {
     auto best_first_gen = best_of_population(population);
 #endif
     best_known_solution = best_solution(best_known_solution, best_first_gen);
+    if (convergence_history)
+        convergence_history->push_back(best_known_solution.cost);
     while (current_generation <= MAX_GENERATION) {
     	parents = children = {};
         select_parents(parents, population);
@@ -321,6 +323,8 @@ SCPSolution genetic_algorithm(SCPInstance& instance) {
 #endif
         best_known_solution = best_solution(best_known_solution, best_new_gen);
         elitism(population, children);
+        if (convergence_history)
+            convergence_history->push_back(best_known_solution.cost);
         current_generation++;
     }
     return best_known_solution;

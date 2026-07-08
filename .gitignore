@@ -72,6 +72,8 @@ results/results_with_ls.csv
 results/results_without_ls.csv
 results/instance_summary.csv
 results/boxplot
+results/convergence
+results/convergence_plots
 
 # vscode data
 .vscode/

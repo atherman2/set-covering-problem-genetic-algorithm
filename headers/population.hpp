@@ -39,6 +39,6 @@ int worst_in_vector(std::vector<int>& indexes, std::vector<SCPSolution>&);
 
 SCPSolution apply_local_search(std::vector<SCPSolution>& children, SCPInstance& instance);
 
-SCPSolution genetic_algorithm(SCPInstance& instance);
+SCPSolution genetic_algorithm(SCPInstance& instance, std::vector<double>* convergence_history = nullptr);
 
 void mutation(SCPSolution& solution, SCPInstance& instance);

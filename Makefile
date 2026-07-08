@@ -22,3 +22,14 @@ endif
 test:
 	g++ testing.cpp $(DS) $(RG) $(POP) -Iheaders -O2 $(TEST_FLAGS) -o $(EXE_TEST)
 	$(EXE_TEST)
+
+ifeq ($(NO_LS),1)
+CONV_FLAGS = -DNO_LOCAL_SEARCH
+else
+CONV_FLAGS =
+endif
+
+.PHONY: convergence
+convergence:
+	g++ convergence.cpp $(DS) $(RG) $(POP) -Iheaders -O2 $(CONV_FLAGS) -o build/convergence
+	build/convergence
