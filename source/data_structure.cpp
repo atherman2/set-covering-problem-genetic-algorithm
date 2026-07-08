@@ -145,6 +145,14 @@ void SCPSolution::add_column(int column_idx, SCPInstance& instance) {
 	}
 }
 
+void SCPSolution::print_columns_used() {
+    std::sort(columns_used.begin(), columns_used.end());
+    for (int i = 0; i < columns_used.size(); i++) {
+        std::cout << (columns_used.at(i) + 1) << ", ";
+    }
+    std::cout << std::endl;
+}
+
 SCPSolution empty_solution(SCPInstance &instance) {
 	return SCPSolution(0.0f, {}, instance.rows_range, instance.num_columns);
 }

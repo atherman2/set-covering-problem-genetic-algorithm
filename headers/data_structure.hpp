@@ -44,6 +44,7 @@ class SCPSolution {
         bool is_valid();
         void remove_column(int column_idx, SCPInstance& instance);
         void add_column(int column_idx, SCPInstance& instance);
+        void print_columns_used();
 };
 
 SCPSolution empty_solution(SCPInstance& instance);
